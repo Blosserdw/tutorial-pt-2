@@ -1,0 +1,23 @@
+{
+  "name": "tutorial-pt-2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "express": "^4.16.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Blosserdw/tutorial-pt-2.git"
+  },
+  "author": "David Blosser",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Blosserdw/tutorial-pt-2/issues"
+  },
+  "homepage": "https://github.com/Blosserdw/tutorial-pt-2#readme"
+}
