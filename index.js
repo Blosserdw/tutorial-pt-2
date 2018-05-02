@@ -1,6 +1,15 @@
 const express = require("express");
 const app = express();
+var fs = require('fs'); // file system
 const http = require("http");
+
+/* var options = {
+	key: fs.readFileSync('encryption/server.key'),
+	cert: fs.readFileSync( 'encryption/server.crt' ),
+	requestCert: false,
+    rejectUnauthorized: false,
+}; */
+
 const server = http.createServer(app);
 const io = require("socket.io")(server);
 

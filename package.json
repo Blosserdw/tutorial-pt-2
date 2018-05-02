@@ -2,9 +2,11 @@
   "name": "tutorial-pt-2",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "dependencies": {
     "express": "^4.16.3",
+	"body-parser": "^1.18.2",
+	"jsonwebtoken": "^8.1.0",
     "socket.io": "^2.1.0"
   },
   "devDependencies": {
