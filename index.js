@@ -85,7 +85,7 @@ io.on('connection', function(socket){
 
 
 
-app.use(express.static('public')); // serve up a static index.html page
+//app.use(express.static('public')); // serve up a static index.html page
 var port = process.env.PORT || 3000;
 //var host = "127.0.0.1";
 server.listen(port, function() {
