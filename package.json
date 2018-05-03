@@ -2,7 +2,7 @@
   "name": "tutorial-pt-2",
   "version": "1.0.0",
   "description": "",
-  "main": "server.js",
+  "main": "index.js",
   "dependencies": {
     "express": "^4.16.3",
 	"body-parser": "^1.18.2",
