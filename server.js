@@ -6,21 +6,8 @@ const express = require("express");
 const app = express();
 var fs = require('fs'); // file system
 
-
-// Certificate info for creating self-signed certificate
-// openssl genrsa -out server.key 1024
-// openssl req -new -key server.key -out server.csr
-// openssl x509 -req -days 10950 -in server.csr -signkey server.key -out server.crt
-var options = {
-	key: fs.readFileSync('encryption/server.key'),
-	cert: fs.readFileSync( 'encryption/server.crt' ),
-	requestCert: false,
-    rejectUnauthorized: false,
-};
-
-
-const https = require("https");
-const server = https.createServer(options, app);
+const http = require("http");
+const server = http.createServer(app);
 const io = require("socket.io")(server);
 
 
@@ -33,7 +20,16 @@ var bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: true })) // To parse URL encoded data
 app.use(bodyParser.json()) // for parsing application/json
 
-
+// Certificate info for creating self-signed certificate
+// openssl genrsa -out server.key 1024
+// openssl req -new -key server.key -out server.csr
+// openssl x509 -req -days 10950 -in server.csr -signkey server.key -out server.crt
+/* var options = {
+	key: fs.readFileSync('encryption/server.key'),
+	cert: fs.readFileSync( 'encryption/server.crt' ),
+	requestCert: false,
+    rejectUnauthorized: false,
+}; */
 
 
 
