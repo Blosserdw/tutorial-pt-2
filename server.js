@@ -6,8 +6,21 @@ const express = require("express");
 const app = express();
 var fs = require('fs'); // file system
 
-const http = require("http");
-const server = http.createServer(app);
+
+// Certificate info for creating self-signed certificate
+// openssl genrsa -out server.key 1024
+// openssl req -new -key server.key -out server.csr
+// openssl x509 -req -days 10950 -in server.csr -signkey server.key -out server.crt
+var options = {
+	key: fs.readFileSync('encryption/server.key'),
+	cert: fs.readFileSync( 'encryption/server.crt' ),
+	requestCert: false,
+    rejectUnauthorized: false,
+};
+
+
+const https = require("https");
+const server = https.createServer(options, app);
 const io = require("socket.io")(server);
 
 
@@ -20,16 +33,7 @@ var bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: true })) // To parse URL encoded data
 app.use(bodyParser.json()) // for parsing application/json
 
-// Certificate info for creating self-signed certificate
-// openssl genrsa -out server.key 1024
-// openssl req -new -key server.key -out server.csr
-// openssl x509 -req -days 10950 -in server.csr -signkey server.key -out server.crt
-/* var options = {
-	key: fs.readFileSync('encryption/server.key'),
-	cert: fs.readFileSync( 'encryption/server.crt' ),
-	requestCert: false,
-    rejectUnauthorized: false,
-}; */
+
 
 
 
@@ -40,7 +44,7 @@ app.use(bodyParser.json()) // for parsing application/json
 // res.sendFile(path + 'index.html');
 
 // socket.io
-io.attach(4567);
+//io.attach(4567);
 
 // json web tokens, need to use Buffer.from(<secretGoesHere>, 'base64') to verify the secret that twitch generates
 var jwt = require('jsonwebtoken');
@@ -89,6 +93,9 @@ io.on('connection', function(socket){
 		
 		socket.on('browserConnection', function(authInfo, callback){
 			//console.dir(authInfo);
+			
+			socket.emit("connectionSuccess2", "You connected to the server!");
+			
 			jwt.verify(authInfo.token, Buffer.from(clientSecret, 'base64'), function(err, decoded){
 				console.log("\x1b[35;1m%s\x1b[0m", "AuthInfo before decode is: ");
 				console.dir(authInfo);
