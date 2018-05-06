@@ -90,7 +90,7 @@ io.on('connection', function(socket){
 		socket.on('browserConnection', function(authInfo, callback){
 			//console.dir(authInfo);
 			
-			socket.emit("connectionSuccess2", "You connected to the server!");
+			//socket.emit("connectionSuccess2", "You connected to the server!");
 			
 			jwt.verify(authInfo.token, Buffer.from(clientSecret, 'base64'), function(err, decoded){
 				console.log("\x1b[35;1m%s\x1b[0m", "AuthInfo before decode is: ");
@@ -133,16 +133,6 @@ function SetupGameConnectionEvents(socket)
 	// Here is where events sent from the Unity game will be routed to a particular extension player (if we can find them by ID)
 	socketToUnityGame.on('beep', function(){
 		socketToUnityGame.emit('boop');
-	});
-	
-	socketToUnityGame.on('stoppedMovement', function(data){
-		console.log("Game says that " + data.twitchUserId + " is stopped at " + data.stoppedLocation);
-		GetSocketByTwitchUserId(data.twitchUserId).emit('moveFinishedEvent', {stoppedLocation: data.stoppedLocation});
-	});
-	
-	socketToUnityGame.on('gotItem', function(data){
-		console.log("Game says that " + data.twitchUserId + " got item: " + data.itemGot);
-		GetSocketByTwitchUserId(data.twitchUserId).emit('gotItemEvent', {itemGot: data.itemGot});
 	});
 	
 	
@@ -190,6 +180,15 @@ function SetupGameConnectionEvents(socket)
 		}
 	});
 	
+	// Game sends message to update the game state (for party controls)
+	socketToUnityGame.on('changeGameState', function(data){
+		
+		// Send this data to all browser sockets
+		for each (viewerSocket in browserClients)
+		{
+			viewerSocket.emit("changeGameState", data.thisNum);
+		}
+	});
 }
 
 //=============================================================|
