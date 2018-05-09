@@ -184,10 +184,9 @@ function SetupGameConnectionEvents(socket)
 	socketToUnityGame.on('changeGameState', function(data){
 		
 		// Send this data to all browser sockets
-		for each (viewerSocket in browserClients)
-		{
-			viewerSocket.emit("changeGameState", data.thisNum);
-		}
+		browserClients.forEach(function(thisViewerSocket){
+			thisViewerSocket.emit("changeGameState", data.thisNum);
+		});
 	});
 }
 
@@ -280,7 +279,7 @@ function SetupBrowserConnectionEvents(socket, decodedJWT)
 		
 		var partyActionPacket = {opaqueUserId: socket.opaqueUserId,
 									twitchUserId: socket.twitchUserId,
-									directionNum: directionNum
+									indexNumber: directionNum
 									};
 		console.log("\x1b[35;1m%s\x1b[0m", "User: " + socket.opaqueUserId + " voted to move the party: " + directionNum);
 		console.dir(partyActionPacket);
