@@ -50,6 +50,7 @@ var jwt = require('jsonwebtoken');
 //================================================================================================================================|
 //var routes = require('./routes.js'); // require routes that will organize what we do with certain entites related to HTTP methods
 //app.use('/', routes); // use things route on "/things" URL
+//const partyMovementVote = require("./partyMovementVote");
 
 //================================================================================================================================|
 // SOCKET.IO
@@ -58,7 +59,6 @@ var browserClients = [];
 var clientSecret = "JgFd0a0l+rK2pw4/JYx8fkDEC5QvJNgnQtiSKttoXxg="; // from VaultsAndViewers
 //var clientSecret = "JNsCWUJa90qzwa7naE8sLVjNmxJHijle8kFXLEviaaE="; // from CastawayArcade
 var socketToUnityGame;
-var browserSocket; // TODO: Can't just have one browser socket, so will have to store them in an array/list with twitch name to identify
 
 io.on('connection', function(socket){
 	
@@ -137,6 +137,18 @@ function SetupGameConnectionEvents(socket)
 	
 	
 	
+	socketToUnityGame.on('startCharacterCreation', function(data){
+		viewerSocket = GetSocketByTwitchUserId(data.opaqueUserId)
+		if (viewerSocket)
+		{
+			viewerSocket.emit("startCharacterCreation", data);
+		}
+		else
+		{
+			console.log("Could not find socket for this user!");
+			console.log(data);
+		}
+	});
 	
 	// Game sends message to display the character sheet (after joining or creating a character)
 	socketToUnityGame.on('displayCharacterSheet', function(data){
@@ -188,6 +200,29 @@ function SetupGameConnectionEvents(socket)
 			thisViewerSocket.emit("changeGameState", data.thisNum);
 		});
 	});
+	
+	// Game sends message to start a movement vote
+	socketToUnityGame.on('startMovementVote', function(data){
+		
+		console.log("Starting movement vote...");
+		
+		StartMovementVote();
+		
+		// Send this data to all browser sockets
+		browserClients.forEach(function(thisViewerSocket){
+			thisViewerSocket.emit("startMovementVote", voteInfo);
+		});
+	});
+	
+	socketToUnityGame.on('stopMovementVote', function(data){
+		
+		console.log("Stopping movement vote...");
+		
+		// Send this data to all browser sockets
+		browserClients.forEach(function(thisViewerSocket){
+			thisViewerSocket.emit("stopMovementVote", voteInfo);
+		});
+	});
 }
 
 //=============================================================|
@@ -197,9 +232,16 @@ function SetupBrowserConnectionEvents(socket, decodedJWT)
 {
 	// Here is where events sent from an viewer's extension will be routed to the unity game
 	socket.on('viewerJoinedEvent', function(){ // send twitch user ID of this command issuer
-		var joiningViewerPacket = {opaqueUserId: socket.opaqueUserId, twitchUserId: socket.twitchUserId};
-		//console.dir(joiningViewerPacket);
-		socketToUnityGame.emit("viewerJoinedEvent", joiningViewerPacket);
+		if (socketToUnityGame)
+		{
+			var joiningViewerPacket = {opaqueUserId: socket.opaqueUserId, twitchUserId: socket.twitchUserId};
+			//console.dir(joiningViewerPacket);
+			socketToUnityGame.emit("viewerJoinedEvent", joiningViewerPacket);	
+		}
+		else
+		{
+			console.log("\x1b[31;1m%s\x1b[0m", "Unity Game socket is null! Can't connect!");
+		}
 	});
 	
 	socket.on('characterCreated', function(createdCharacterInfo){ // send twitch user ID of this command issuer as well as character creation info
@@ -277,6 +319,11 @@ function SetupBrowserConnectionEvents(socket, decodedJWT)
 	// Party actions
 	socket.on('partyMovementVoteCast', function(directionNum){
 		
+		VoteCast(directionNum);
+		socket.emit("updateMovementVote", voteInfo);
+		
+		
+		// Might not communicate this to the game anymore because it might be better to have it all piped back to the user faster
 		var partyActionPacket = {opaqueUserId: socket.opaqueUserId,
 									twitchUserId: socket.twitchUserId,
 									indexNumber: directionNum
@@ -285,8 +332,31 @@ function SetupBrowserConnectionEvents(socket, decodedJWT)
 		console.dir(partyActionPacket);
 		socketToUnityGame.emit("partyMovementVoteCast", partyActionPacket);
 	});
+	
+	socket.on('requestingUpdatedMovementVoteInfo', function(callback){
+		console.log("Requesting vote info...");
+		callback(voteInfo);
+	});
 
 }
+
+//================================================================================================================================|
+// PARTY VOTING
+//================================================================================================================================|
+var voteInfo = {totalVotes: 0, voteOptions: [0,0,0,0,0,0]};
+
+function StartMovementVote(data)
+{
+	voteInfo.totalVotes = 0;
+	voteInfo.voteOptions = [0,0,0,0,0,0];
+}
+
+function VoteCast(voteOptionNum)
+{
+	voteInfo.totalVotes++;
+	voteInfo.voteOptions[voteOptionNum]++;
+}
+
 
 //================================================================================================================================|
 // MIDDLEWARE FUNCTIONS
@@ -381,7 +451,7 @@ app.get('*', function(req, res){
 //================================================================================================================================|
 // SERVER
 //================================================================================================================================|
-var port = process.env.PORT || 3000;
+var port = process.env.PORT || 3001;
 var host = "127.0.0.1";
 server.listen(port, function() {
    console.log('listening on *:' + port);
